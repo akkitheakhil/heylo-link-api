@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "This is the server for Heylo Link",
   "main": "index.js",
+  "engines": {
+    "node": "12.11.1"
+    },
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js"
@@ -20,8 +23,5 @@
   "devDependencies": {
     "dotenv": "^8.2.0",
     "nodemon": "^2.0.6"
-  },
-  "engines": {
-    "node": "12.11.1"
-    }
+  }
 }
