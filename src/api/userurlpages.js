@@ -1,16 +1,33 @@
 const express = require('express');
-require('dotenv').config();
 const monk = require('monk');
 const yup = require('yup');
+require('dotenv').config();
 const slowDown = require("express-slow-down");
 const rateLimit = require("express-rate-limit");
 const { nanoid } = require('nanoid');
 const db = monk(process.env.MONGO_URI);
 const slugs = db.get('slugs');
+const admin = require("firebase-admin");
 slugs.createIndex('name');
+var cookieParser = require('cookie-parser');
 
+// Firebase Config
 
-
+admin.initializeApp({
+    credential: admin.credential.cert({
+        "type": process.env.FIREBASE_TYPE,
+        "project_id": process.env.FIREBASE_PROJECT_ID,
+        "private_key_id": process.env.FIREBASE_PRIVATE_KEY_ID,
+        "private_key": process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        "client_email": process.env.FIREBASE_CLIENT_EMAIL,
+        "client_id": process.env.FIREBASE_CLIENT_ID,
+        "auth_uri": process.env.FIREBASE_AUTH_URI,
+        "token_uri": process.env.FIREBASE_TOKEN_URI,
+        "auth_provider_x509_cert_url": process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+        "client_x509_cert_url": process.env.FIREBASE_CLIENT_X509_CERT_URL
+      }),
+    databaseURL: "https://heylo-link.firebaseio.com"
+  });
 
 // Rate Limiter
 const limiter = rateLimit({
@@ -26,8 +43,29 @@ const speedLimiter = slowDown({
 });
 
 
+// Firebase AuthCheck
+function checkAuth(req, res, next) {
+    if (req.headers.authtoken) {
+      admin.auth().verifyIdToken(req.headers.authtoken)
+        .then(() => {
+          next()
+        }).catch(() => {
+        
+          res.status = 403
+
+          next(e)
+          res.status(403).send({errorStatus: 'Unauthorized', message: 'User not logged in or not a valid user'})
+        });
+    } else {
+        res.status(403).send({errorStatus: 'Unauthorized', message: 'User not logged in or not a valid user'})
+    }
+  }
+
 // Router Init
 const router = express.Router();
+router.use(cookieParser());
+
+router.use('/', checkAuth)
 
 // Schema Validation
 const shortSchema = yup.object().shape({
