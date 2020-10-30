@@ -69,7 +69,9 @@ router.use('/', checkAuth)
 
 // Schema Validation
 const shortSchema = yup.object().shape({
-    url: yup.string().trim().url().required(),
+    url: yup.string().trim().matches(
+        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        'Please enter a valid url!').required('URL is required'),
     name: yup.string().trim(),
 });
 

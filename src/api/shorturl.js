@@ -28,8 +28,9 @@ const router = express.Router();
 
 // Schema Validation
 const schema = yup.object().shape({
-    url: yup.string().trim().url().required(),
-    name: yup.string().trim(),
+    url: yup.string().trim().matches(
+        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        'Please enter a valid url!').required('URL is required'),
 });
 
 
@@ -51,11 +52,11 @@ router.get('/:id', speedLimiter, async (req, res, next) => {
 router.post('/', limiter, async (req, res, next) => {
     let { url, name } = req.body;
     try {
-        await schema.validate({ url, name });
-        name ? name.toLowerCase() : name = nanoid(6);
+        await schema.validate({ url });
+        name = nanoid(6);
         const existing = await slugs.findOne({ name });
         if (existing) {
-            throw new Error('Custom Name already in use');
+            throw new Error('Name already in use. Please try again');
         }
         const type = 'shortlink';
         const newLink = { url, name, type };
