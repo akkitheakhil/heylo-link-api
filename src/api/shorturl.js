@@ -5,7 +5,7 @@ const { nanoid } = require('nanoid');
 const slowDown = require("express-slow-down");
 const rateLimit = require("express-rate-limit");
 const db = monk(process.env.MONGO_URI);
-const slugs = db.get('slugs');
+const slugs = db.get(process.env.MONGO_DB);
 const yup = require('yup');
 slugs.createIndex('name');
 

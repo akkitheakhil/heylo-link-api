@@ -6,7 +6,7 @@ const slowDown = require("express-slow-down");
 const rateLimit = require("express-rate-limit");
 const { nanoid } = require('nanoid');
 const db = monk(process.env.MONGO_URI);
-const slugs = db.get('slugs');
+const slugs = db.get(process.env.MONGO_DB);
 const admin = require("firebase-admin");
 slugs.createIndex('name');
 var cookieParser = require('cookie-parser');
