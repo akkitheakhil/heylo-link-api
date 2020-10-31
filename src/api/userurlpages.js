@@ -79,6 +79,7 @@ const shortSchema = yup.object().shape({
 
 const pageSchema = yup.object().shape({
     name: yup.string().trim().required(),
+    displayName: yup.string().trim(),
     coverpic: yup.string().trim().url().nullable(),
     profilepicture: yup.string().trim().url().nullable(),
     data: yup.array().of(yup.object().shape({
@@ -128,16 +129,16 @@ router.post('/shortlinks', limiter, async (req, res, next) => {
 // Create Custom pages
 // Users can only make 100 pages per hour
 router.post('/pages', limiter, async (req, res, next) => {
-    let { name, coverpic, profilepicture, data } = req.body;
+    let { name, coverpic, profilepicture, displayName, data } = req.body;
     try {
-        await pageSchema.validate({ name, coverpic, profilepicture, data });
+        await pageSchema.validate({ name, coverpic, profilepicture, displayName, data });
         name ? name = name.toLowerCase() : name = nanoid(6);
         const existing = await slugs.findOne({ name });
         if (existing) {
             throw new Error('This name has already been taken. Please choose another name');
         }
         const type = 'page';
-        const newLink = { name, type, coverpic, profilepicture, data };
+        const newLink = { name, type, coverpic, profilepicture, displayName, data };
         const created = await slugs.insert(newLink);
         res.json(created);
     } catch (error) {
@@ -149,8 +150,8 @@ router.put('/pages/:id', limiter, async (req, res, next) => {
     try {
         const { id } = req.params;
         console.log(id)
-        let { name, coverpic, profilepicture, data } = req.body;
-        await pageSchema.validate({ name, coverpic, profilepicture, data });
+        let { name, coverpic, profilepicture, displayName, data } = req.body;
+        await pageSchema.validate({ name, coverpic, profilepicture, displayName, data });
         const existing = await slugs.findOne({ name: id });
         console.log(existing)
         name = id;
@@ -159,7 +160,7 @@ router.put('/pages/:id', limiter, async (req, res, next) => {
         }
 
         const type = 'page';
-        const newData = { name, type, coverpic, profilepicture, data };
+        const newData = { name, type, coverpic, profilepicture, displayName, data };
         const updated = await slugs.update({
             _id: existing._id
         }, {
