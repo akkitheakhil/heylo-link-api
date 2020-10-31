@@ -136,7 +136,6 @@ router.post('/pages', limiter, async (req, res, next) => {
         if (existing) {
             throw new Error('This name has already been taken. Please choose another name');
         }
-
         const type = 'page';
         const newLink = { name, type, coverpic, profilepicture, data };
         const created = await slugs.insert(newLink);
@@ -144,7 +143,6 @@ router.post('/pages', limiter, async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-
 });
 
 router.put('/pages/:id', limiter, async (req, res, next) => {
@@ -213,6 +211,7 @@ router.put('/users/:id', limiter, async (req, res, next) => {
             } else if(slugName) {
                 throw new Error(`Sorry this name has already been taken. Please use another name.`);
             }
+            pagename = pagename.toLowerCase();
             const newData = { id, email, displayName, photoURL, emailVerified, pagename };
             const updated = await user.update({
                 _id: existing._id
