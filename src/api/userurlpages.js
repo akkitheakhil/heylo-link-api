@@ -79,7 +79,7 @@ const shortSchema = yup.object().shape({
 
 const pageSchema = yup.object().shape({
     name: yup.string().trim().required(),
-    displayName: yup.string().trim(),
+    displayName: yup.string().trim().nullable(),
     coverpic: yup.string().trim().url().nullable(),
     profilepicture: yup.string().trim().url().nullable(),
     data: yup.array().of(yup.object().shape({
@@ -108,8 +108,10 @@ router.get('/:id', async (req, res, next) => {
 // Create Custom Short Links
 // Users can only make 100 Links per hour
 router.post('/shortlinks', limiter, async (req, res, next) => {
+    let { uid } = req.currentUser;
     let { url, name } = req.body;
     try {
+        console.log(uid);
         await shortSchema.validate({ url, name });
         name ? name = name.toLowerCase() : name = nanoid(6);
         const existing = await slugs.findOne({ name });
@@ -129,6 +131,7 @@ router.post('/shortlinks', limiter, async (req, res, next) => {
 // Create Custom pages
 // Users can only make 100 pages per hour
 router.post('/pages', limiter, async (req, res, next) => {
+    let { uid } = req.currentUser;
     let { name, coverpic, profilepicture, displayName, data } = req.body;
     try {
         await pageSchema.validate({ name, coverpic, profilepicture, displayName, data });
@@ -137,8 +140,9 @@ router.post('/pages', limiter, async (req, res, next) => {
         if (existing) {
             throw new Error('This name has already been taken. Please choose another name');
         }
+
         const type = 'page';
-        const newLink = { name, type, coverpic, profilepicture, displayName, data };
+        const newLink = { name, type, coverpic, profilepicture, displayName, data, uid };
         const created = await slugs.insert(newLink);
         res.json(created);
     } catch (error) {
@@ -147,26 +151,31 @@ router.post('/pages', limiter, async (req, res, next) => {
 });
 
 router.put('/pages/:id', limiter, async (req, res, next) => {
+    
     try {
+        let { uid } = req.currentUser;
         const { id } = req.params;
-        console.log(id)
         let { name, coverpic, profilepicture, displayName, data } = req.body;
         await pageSchema.validate({ name, coverpic, profilepicture, displayName, data });
         const existing = await slugs.findOne({ name: id });
-        console.log(existing)
         name = id;
         if (!existing) {
             return next();
+        } else {
+            if(uid !== existing.uid) {
+                return res.status(403).send({ errorStatus: 'Unauthorized', message: 'You do not have premission to access this data' });
+            } else {
+                const type = 'page';
+                const newData = { name, type, coverpic, profilepicture, displayName, data, uid };
+                const updated = await slugs.update({
+                    _id: existing._id
+                }, {
+                    $set: newData
+                });
+                res.json(newData);
+            }
         }
 
-        const type = 'page';
-        const newData = { name, type, coverpic, profilepicture, displayName, data };
-        const updated = await slugs.update({
-            _id: existing._id
-        }, {
-            $set: newData
-        });
-        res.json(newData);
     } catch (error) {
         next(error);
     }
