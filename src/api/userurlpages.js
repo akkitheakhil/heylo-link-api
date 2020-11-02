@@ -48,7 +48,7 @@ const speedLimiter = slowDown({
 // Firebase AuthCheck
 function checkAuth(req, res, next) {
 
-    if ( req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
         const idToken = req.headers.authorization.split('Bearer ')[1];
         admin.auth().verifyIdToken(idToken)
             .then((data) => {
@@ -150,19 +150,20 @@ router.post('/pages', limiter, async (req, res, next) => {
     }
 });
 
-router.put('/pages/:id', limiter, async (req, res, next) => {
-    
+router.put('/pages/:id', async (req, res, next) => {
+
     try {
         let { uid } = req.currentUser;
         const { id } = req.params;
         let { name, coverpic, profilepicture, displayName, data } = req.body;
         await pageSchema.validate({ name, coverpic, profilepicture, displayName, data });
         const existing = await slugs.findOne({ name: id });
+
         name = id;
         if (!existing) {
             return next();
         } else {
-            if(uid !== existing.uid) {
+            if (uid !== existing.uid) {
                 return res.status(403).send({ errorStatus: 'Unauthorized', message: 'You do not have premission to access this data' });
             } else {
                 const type = 'page';
@@ -204,7 +205,7 @@ router.post('/users', limiter, async (req, res, next) => {
 });
 
 
-router.put('/users/:id', limiter, async (req, res, next) => {
+router.put('/users/:id', async (req, res, next) => {
 
     try {
         const { id } = req.params;
@@ -216,9 +217,9 @@ router.put('/users/:id', limiter, async (req, res, next) => {
                 return next();
             }
 
-            if(existing.pagename && existing.pagename !== pagename) {
+            if (existing.pagename && existing.pagename !== pagename) {
                 throw new Error(`Only one profile allowed per user.`);
-            } else if(slugName) {
+            } else if (slugName) {
                 throw new Error(`Sorry this name has already been taken. Please use another name.`);
             }
             pagename = pagename.toLowerCase();
@@ -239,7 +240,7 @@ router.put('/users/:id', limiter, async (req, res, next) => {
 });
 
 // Get User by UID
-router.get('/users/:uid', speedLimiter, async (req, res, next) => {
+router.get('/users/:uid', async (req, res, next) => {
     try {
         const { uid } = req.params;
         if (currentUser.uid === uid) {
@@ -252,6 +253,78 @@ router.get('/users/:uid', speedLimiter, async (req, res, next) => {
 
     } catch (err) {
         next(err);
+    }
+});
+
+router.get('/user', async (req, res, next) => {
+    try {
+        const { uid } = req.currentUser;
+        const items = await user.findOne({ uid });
+        items.length > 0 ? res.json(items) : next([]);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/page', async (req, res, next) => {
+    try {
+        const { uid } = req.currentUser;
+        const users = await user.findOne({ uid });
+        console.log(users);
+        const id = users.pagename;
+        const items = await slugs.findOne({ name: id });
+        // If found return else not found
+        items ? res.json({items}) : res.json({});
+
+    } catch (error) {
+        next(error);
+    }
+})
+
+router.get('/init', async (req, res, next) => {
+    try {
+        const { uid } = req.currentUser;
+        const users = await user.findOne({ uid });
+        const name = users.pagename;
+        const page = await slugs.findOne({ name });
+        res.json({users, page});
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+// Create Page
+router.post('/page', limiter, async (req, res, next) => {
+    let { uid } = req.currentUser;
+    let { name, coverpic, profilepicture, displayName, data } = req.body;
+    displayName = name;
+    try {
+        await pageSchema.validate({ name, coverpic, profilepicture, displayName, data });
+        const existing = await slugs.findOne({ name });
+        const users = await user.find({ uid });
+        if (existing) {
+            throw new Error('This name has already been taken. Please choose another name');
+        } else {
+            if(users && users[0].pagename) {
+                throw new Error('Only one Heylo Profile allowed per free account. Please upgrade to create more');
+            } else {
+                users[0].pagename = name;
+                const urs = users[0];
+                urs.pagename = name;
+                const updateUser = await user.update({
+                    _id: urs._id
+                }, {
+                    $set: urs
+                });
+                const type = 'page';
+                const newLink = { name, type, coverpic, profilepicture, displayName, data, uid };
+                const pageinfo = await slugs.insert(newLink);
+                res.json({urs, pageinfo});
+            }
+        }
+    } catch (error) {
+        next(error);
     }
 });
 
