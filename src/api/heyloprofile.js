@@ -438,8 +438,11 @@ router.put('/page/link/customize/coverpicture', async (req, res, next) => {
             if (!existing.theme) {
                 existing.theme = { profilepicture: '', coverpicture: '', covertheme: '' };
             }
+            
             existing.coverpicture = coverpicture;
             existing.theme.coverpicture = coverpicture;
+            existing.theme.covertheme = '';
+
             const update = await slugs.update({
                 _id: existing._id
             }, {
