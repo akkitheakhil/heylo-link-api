@@ -138,18 +138,6 @@ router.post('/shortlinks', limiter, async (req, res, next) => {
     }
 });
 
-// Get user details
-router.get('/user', async (req, res, next) => {
-    try {
-        const { uid } = req.currentUser;
-        const items = await user.findOne({ uid });
-        items.length > 0 ? res.json(items) : next([]);
-    } catch (err) {
-        next(err);
-    }
-});
-
-
 // Get pageinfo
 router.get('/page', async (req, res, next) => {
     try {
@@ -173,9 +161,13 @@ router.get('/init', async (req, res, next) => {
     try {
         const { uid } = req.currentUser;
         const users = await user.findOne({ uid });
-        const name = users.pagename;
-        const page = await slugs.findOne({ name });
-        res.json({ users, page });
+        if (users) {
+            const name = users.pagename;
+            const page = await slugs.findOne({ name });
+            res.json({ users, page });
+        } else {
+            res.json({ users });
+        }
     } catch (err) {
         next(err);
     }
