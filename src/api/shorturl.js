@@ -36,6 +36,7 @@ const schema = yup.object().shape({
 });
 
 
+
 // Get Slug or Page by ID
 router.get('/:id', speedLimiter, async (req, res, next) => {
     try {
@@ -105,7 +106,7 @@ let increaseClickCounter = function (slugName) {
 router.put('/analytics/:id', limiter, async (req, res, next) => {
     try {
         const { id } = req.params;
-    let { index, url, name } = req.body;
+    let { index, url, name, urlid } = req.body;
     let item = await analytics.findOne({ name: id });
     const existing = await slugs.findOne({ name: id });
     if(!item) {
@@ -119,7 +120,7 @@ router.put('/analytics/:id', limiter, async (req, res, next) => {
 
     if (item) {
         if (item.data && item.data.length > 0) {
-            const dataItem = item.data.findIndex(x => x.name === name && x.url === url);
+            const dataItem = item.data.findIndex(x => x.id === urlid);
             if (dataItem > -1) {
                 item.data[dataItem].count += 1;
                 item.data[dataItem].lastClicked = new Date();
@@ -133,7 +134,7 @@ router.put('/analytics/:id', limiter, async (req, res, next) => {
                 let lastClicked, count;
                 lastClicked = new Date();
                 count = 1;
-                const newData = { name: name, url: url, lastClicked: lastClicked, count: count };
+                const newData = { name: name, url: url, lastClicked: lastClicked, count: count, id: urlid };
                 item.data.push(newData);
                 const updated = await analytics.update({
                     _id: item._id
@@ -147,7 +148,7 @@ router.put('/analytics/:id', limiter, async (req, res, next) => {
             let lastClicked, count;
             lastClicked = new Date();
             count = 1;
-            const newData = { name: name, url: url, lastClicked: lastClicked, count: count };
+            const newData = { name: name, url: url, lastClicked: lastClicked, count: count, id: urlid  };
             item.data.push(newData);
             const updated = await analytics.update({
                 _id: item._id

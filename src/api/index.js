@@ -1,7 +1,7 @@
 const express = require('express');
 
 const shorturl = require('./shorturl');
-const custompage = require('./userurlpages');
+const custompage = require('./heyloprofile');
 
 const router = express.Router();
 
@@ -12,6 +12,6 @@ router.get('/', (req, res) => {
 });
 
 router.use('/shortlinks', shorturl); // Public URL
-router.use('/userurlpages', custompage); // Private URL
+router.use('/heyloprofile', custompage); // Private URL
 
 module.exports = router;
