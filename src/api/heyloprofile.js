@@ -438,7 +438,7 @@ router.put('/page/link/customize/coverpicture', async (req, res, next) => {
             if (!existing.theme) {
                 existing.theme = { profilepicture: '', coverpicture: '', covertheme: '' };
             }
-            
+
             existing.coverpicture = coverpicture;
             existing.theme.coverpicture = coverpicture;
             existing.theme.covertheme = '';
@@ -530,7 +530,6 @@ router.put('/page/link/customize/btntype', async (req, res, next) => {
             if (!existing.theme) {
                 existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', btntype: '', };
             }
-            existing.theme.coverpicture = '';
             existing.theme.btntype = btntype;
             const update = await slugs.update({
                 _id: existing._id
@@ -559,7 +558,6 @@ router.put('/page/link/customize/btncolor', async (req, res, next) => {
             if (!existing.theme) {
                 existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', btncolor: '', };
             }
-            existing.theme.coverpicture = '';
             existing.theme.btncolor = btncolor;
             const update = await slugs.update({
                 _id: existing._id
@@ -588,7 +586,6 @@ router.put('/page/link/customize/btntext', async (req, res, next) => {
             if (!existing.theme) {
                 existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', btntext: '', };
             }
-            existing.theme.coverpicture = '';
             existing.theme.btntext = btntext;
             const update = await slugs.update({
                 _id: existing._id
@@ -623,9 +620,6 @@ router.get('/analytics', async (req, res, next) => {
         next(error);
     }
 })
-
-
-
 
 
 // TODO 
