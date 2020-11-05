@@ -143,8 +143,6 @@ router.get('/page', async (req, res, next) => {
     try {
         const { uid } = req.currentUser;
         const users = await user.findOne({ uid });
-
-        console.log(users);
         const id = users.pagename;
         const items = await slugs.findOne({ name: id });
         // If found return else not found
@@ -500,6 +498,94 @@ router.put('/page/link/customize/bodytheme', async (req, res, next) => {
                 existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', bodytheme: '' };
             }
             existing.theme.bodytheme = bodytheme;
+            const update = await slugs.update({
+                _id: existing._id
+            }, {
+                $set: existing
+            });
+            res.json(existing);
+        } else {
+            throw new Error('No page found to upload profile picture');
+        }
+
+    } catch (error) {
+        next(error)
+    }
+});
+
+
+router.put('/page/link/customize/btntype', async (req, res, next) => {
+    try {
+        const { uid } = req.currentUser;
+        const { btntype } = req.body;
+        const users = await user.findOne({ uid });
+        const pagename = users.pagename;
+        const existing = await slugs.findOne({ name: pagename });
+
+        if (existing && btntype) {
+            if (!existing.theme) {
+                existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', btntype: '', };
+            }
+            existing.theme.coverpicture = '';
+            existing.theme.btntype = btntype;
+            const update = await slugs.update({
+                _id: existing._id
+            }, {
+                $set: existing
+            });
+            res.json(existing);
+        } else {
+            throw new Error('No page found to upload profile picture');
+        }
+
+    } catch (error) {
+        next(error)
+    }
+});
+
+router.put('/page/link/customize/btncolor', async (req, res, next) => {
+    try {
+        const { uid } = req.currentUser;
+        const { btncolor } = req.body;
+        const users = await user.findOne({ uid });
+        const pagename = users.pagename;
+        const existing = await slugs.findOne({ name: pagename });
+
+        if (existing && btncolor) {
+            if (!existing.theme) {
+                existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', btncolor: '', };
+            }
+            existing.theme.coverpicture = '';
+            existing.theme.btncolor = btncolor;
+            const update = await slugs.update({
+                _id: existing._id
+            }, {
+                $set: existing
+            });
+            res.json(existing);
+        } else {
+            throw new Error('No page found to upload profile picture');
+        }
+
+    } catch (error) {
+        next(error)
+    }
+});
+
+router.put('/page/link/customize/btntext', async (req, res, next) => {
+    try {
+        const { uid } = req.currentUser;
+        const { btntext } = req.body;
+        const users = await user.findOne({ uid });
+        const pagename = users.pagename;
+        const existing = await slugs.findOne({ name: pagename });
+
+        if (existing && btntext) {
+            if (!existing.theme) {
+                existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', btntext: '', };
+            }
+            existing.theme.coverpicture = '';
+            existing.theme.btntext = btntext;
             const update = await slugs.update({
                 _id: existing._id
             }, {
