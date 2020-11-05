@@ -185,17 +185,13 @@ router.get('/init', async (req, res, next) => {
 router.get('/user', limiter, async (req, res, next) => {
     try {
         let { uid, email, displayName, photoURL, emailVerified } = currentUser;
-        if (currentUser.uid === uid) {
-            const existing = await user.findOne({ uid: uid });
-            if (existing) {
-                res.json(existing);
-            } else {
-                const newLink = { uid, email, displayName, photoURL, emailVerified };
-                const created = await user.insert(newLink);
-                res.json(created);
-            }
+        const existing = await user.findOne({ uid: uid });
+        if (existing) {
+            res.json(existing);
         } else {
-            res.status(403).send({ errorStatus: 'Unauthorized', message: 'You do not have premission to access this data' });
+            const newLink = { uid, email, displayName, photoURL, emailVerified };
+            const created = await user.insert(newLink);
+            res.json(created);
         }
     } catch (error) {
         next(error);
@@ -273,7 +269,7 @@ router.put('/page/link/add', limiter, async (req, res, next) => {
     try {
         let { uid } = req.currentUser;
         let { url, name, icon } = req.body;
-        await addLinkSchema.validate({url, name, icon});
+        await addLinkSchema.validate({ url, name, icon });
         const users = await user.findOne({ uid });
         const pagename = users.pagename;
         const existing = await slugs.findOne({ name: pagename });
@@ -312,7 +308,7 @@ router.put('/page/link/add', limiter, async (req, res, next) => {
 router.put('/page/link/edit', limiter, async (req, res, next) => {
     let { uid } = req.currentUser;
     let { id, url, name, icon } = req.body;
-    await editLinkSchema.validate({id, url, name, icon});
+    await editLinkSchema.validate({ id, url, name, icon });
     try {
         const users = await user.findOne({ uid });
         const pagename = users.pagename;
@@ -382,14 +378,14 @@ router.put('/page/link/changeorder', async (req, res, next) => {
         const { uid } = req.currentUser;
         const { id, toIndex, fromIndex } = req.body;
 
-        await changeOrderSchema.validate({id, toIndex, fromIndex});
+        await changeOrderSchema.validate({ id, toIndex, fromIndex });
         const users = await user.findOne({ uid });
         const pagename = users.pagename;
         const existing = await slugs.findOne({ name: pagename });
         // Move 
         let dataItem = existing.data;
         const item = dataItem.find(x => x.id === id);
-        if(existing && item) {
+        if (existing && item) {
             dataItem = dataItem.filter(x => x.id !== id);
             dataItem.splice(toIndex, 0, item)
             existing.data = dataItem;
@@ -416,10 +412,10 @@ router.put('/page/link/customize/profilepicture', async (req, res, next) => {
         const pagename = users.pagename;
         const existing = await slugs.findOne({ name: pagename });
 
-        if(existing && profilepicture) {
+        if (existing && profilepicture) {
 
-            if(!existing.theme) {
-                existing.theme = {  profilepicture: '',  coverpicture: '', covertheme: '' };
+            if (!existing.theme) {
+                existing.theme = { profilepicture: '', coverpicture: '', covertheme: '' };
             }
 
             existing.theme.profilepicture = profilepicture;
@@ -448,9 +444,9 @@ router.put('/page/link/customize/coverpicture', async (req, res, next) => {
         const pagename = users.pagename;
         const existing = await slugs.findOne({ name: pagename });
 
-        if(existing && coverpicture) {
-            if(!existing.theme) {
-                existing.theme = {  profilepicture: '',  coverpicture: '', covertheme: '' };
+        if (existing && coverpicture) {
+            if (!existing.theme) {
+                existing.theme = { profilepicture: '', coverpicture: '', covertheme: '' };
             }
             existing.theme.coverpicture = coverpicture;
             const update = await slugs.update({
@@ -477,9 +473,9 @@ router.put('/page/link/customize/covertheme', async (req, res, next) => {
         const pagename = users.pagename;
         const existing = await slugs.findOne({ name: pagename });
 
-        if(existing && covertheme) {
-            if(!existing.theme) {
-                existing.theme = {  profilepicture: '',  coverpicture: '', covertheme: '' };
+        if (existing && covertheme) {
+            if (!existing.theme) {
+                existing.theme = { profilepicture: '', coverpicture: '', covertheme: '' };
             }
             existing.theme.coverpicture = '';
             existing.theme.covertheme = covertheme;
@@ -507,9 +503,9 @@ router.put('/page/link/customize/bodytheme', async (req, res, next) => {
         const pagename = users.pagename;
         const existing = await slugs.findOne({ name: pagename });
 
-        if(existing && bodytheme) {
-            if(!existing.theme) {
-                existing.theme = {  profilepicture: '',  coverpicture: '', covertheme: '', bodytheme: '' };
+        if (existing && bodytheme) {
+            if (!existing.theme) {
+                existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', bodytheme: '' };
             }
             existing.theme.bodytheme = bodytheme;
             const update = await slugs.update({
@@ -534,13 +530,13 @@ router.get('/analytics', async (req, res, next) => {
         const users = await user.findOne({ uid });
         const id = users.pagename;
         const items = await slugs.findOne({ name: id });
-        if(items) {
-           const analyticsData = await analytics.findOne({name: id });
-           analyticsData ? res.json(analyticsData) : res.json({});
+        if (items) {
+            const analyticsData = await analytics.findOne({ name: id });
+            analyticsData ? res.json(analyticsData) : res.json({});
         } else {
             res.json({});
         }
-     
+
     } catch (error) {
         next(error);
     }
