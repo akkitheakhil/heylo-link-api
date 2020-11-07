@@ -206,7 +206,7 @@ router.post('/page', limiter, async (req, res, next) => {
             if (users && users[0].pagename) {
                 throw new Error('Only one Heylo Profile allowed per free account. Please upgrade to create more');
             } else {
-                users[0].pagename = name;
+                users[0].pagename = name.replace(/\s/g, "").trim();
                 const urs = users[0];
                 urs.pagename = name;
                 const updateUser = await user.update({
