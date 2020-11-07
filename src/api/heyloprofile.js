@@ -73,7 +73,7 @@ router.use('/', checkAuth);
 // Schema Validation
 const shortSchema = yup.object().shape({
     url: yup.string().trim().matches(
-        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/,
         'Please enter a valid url!').required('URL is required'),
     name: yup.string().trim(),
 });
@@ -83,7 +83,7 @@ const pageSchema = yup.object().shape({
     displayName: yup.string().trim().nullable(),
     data: yup.array().of(yup.object().shape({
         url: yup.string().trim().matches(
-            /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+            /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/,
             'Please enter a valid url!').required('URL is required'),
         name: yup.string().trim().required(),
         icon: yup.string().trim().nullable(),
@@ -93,7 +93,7 @@ const pageSchema = yup.object().shape({
 
 const addLinkSchema = yup.object().shape({
     url: yup.string().trim().matches(
-        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/,
         'Please enter a valid url!').required('URL is required to create a link'),
     name: yup.string().trim().required('Name is required to create a link'),
     icon: yup.string().trim().nullable(),
@@ -103,7 +103,7 @@ const addLinkSchema = yup.object().shape({
 
 const editLinkSchema = yup.object().shape({
     url: yup.string().trim().matches(
-        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/,
         'Please enter a valid url!').required('URL is required'),
     name: yup.string().trim().required('Name is required to edit a link'),
     id: yup.string().trim().required(`Could not process your request`),
