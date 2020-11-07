@@ -96,7 +96,8 @@ const addLinkSchema = yup.object().shape({
         /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
         'Please enter a valid url!').required('URL is required to create a link'),
     name: yup.string().trim().required('Name is required to create a link'),
-    icon: yup.string().trim(),
+    icon: yup.string().trim().nullable(),
+    type: yup.string().trim().required('Type is required to create a link'),
 });
 
 
@@ -106,7 +107,8 @@ const editLinkSchema = yup.object().shape({
         'Please enter a valid url!').required('URL is required'),
     name: yup.string().trim().required('Name is required to edit a link'),
     id: yup.string().trim().required(`Could not process your request`),
-    icon: yup.string().trim(),
+    icon: yup.string().trim().nullable(),
+    type: yup.string().trim().required('Type is required to create a link'),
 });
 
 const changeOrderSchema = yup.object().shape({
@@ -258,16 +260,24 @@ router.put('/page/displaytext', limiter, async (req, res, next) => {
 router.put('/page/link/add', limiter, async (req, res, next) => {
     try {
         let { uid } = req.currentUser;
-        let { url, name, icon } = req.body;
-        await addLinkSchema.validate({ url, name, icon });
+        let { url, name, icon, type } = req.body;
+        await addLinkSchema.validate({ url, name, icon, type });
         const users = await user.findOne({ uid });
         const pagename = users.pagename;
         const existing = await slugs.findOne({ name: pagename });
         if (existing) {
 
             if (isValidUserReq(uid, existing.uid)) {
+                if(type === 'youtube') {
+                    var p = /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
+                    if(url.match(p)){
+                        // do nothing.
+                    } else {
+                        throw new Error(`Invalid youtube link.`);
+                    }
+                }
                 const id = nanoid(11);
-                const newData = { id, url, name, icon };
+                const newData = { id, url, name, icon, type };
 
                 if (!existing.data) {
                     existing.data = [];
@@ -297,8 +307,8 @@ router.put('/page/link/add', limiter, async (req, res, next) => {
 // Edit existing url
 router.put('/page/link/edit', limiter, async (req, res, next) => {
     let { uid } = req.currentUser;
-    let { id, url, name, icon } = req.body;
-    await editLinkSchema.validate({ id, url, name, icon });
+    let { id, url, name, icon, type } = req.body;
+    await editLinkSchema.validate({ id, url, name, icon, type });
     try {
         const users = await user.findOne({ uid });
         const pagename = users.pagename;
@@ -307,9 +317,18 @@ router.put('/page/link/edit', limiter, async (req, res, next) => {
         if (existing && findItem) {
 
             if (isValidUserReq(uid, existing.uid)) {
+                if(type === 'youtube') {
+                    var p = /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
+                    if(url.match(p)){
+                        // do nothing.
+                    } else {
+                        throw new Error(`Invalid youtube link.`);
+                    }
+                }
                 findItem.name = name;
                 findItem.url = url;
                 findItem.icon = icon;
+                findItem.type = type;
                 const index = existing.data.findIndex(x => x.id === id);
                 existing.data[index] = findItem;
                 const update = await slugs.update({
@@ -321,7 +340,6 @@ router.put('/page/link/edit', limiter, async (req, res, next) => {
             } else {
                 throw new Error(`You don't have premission to modify this data`);
             }
-
         } else {
             throw new Error('No page or item found to edit.');
         }
