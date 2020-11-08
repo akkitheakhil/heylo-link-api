@@ -256,6 +256,38 @@ router.put('/page/displaytext', limiter, async (req, res, next) => {
     }
 });
 
+
+
+// Update Page Bio Text
+router.put('/page/biotext', limiter, async (req, res, next) => {
+    let { uid } = req.currentUser;
+    let { biotext } = req.body;
+    try {
+        const users = await user.findOne({ uid });
+        const pagename = users.pagename;
+        const existing = await slugs.findOne({ name: pagename });
+        if (existing) {
+            if (isValidUserReq(uid, existing.uid)) {
+                existing.biotext = biotext;
+                const updateUser = await slugs.update({
+                    _id: existing._id
+                }, {
+                    $set: existing
+                });
+                res.json(existing);
+            } else {
+                throw new Error(`You don't have premission to modify this data`);
+            }
+
+        } else {
+            throw new Error('Please create a page before updating your Bio Text');
+        }
+
+    } catch (err) {
+        next(err)
+    }
+});
+
 // Add new url link
 router.put('/page/link/add', limiter, async (req, res, next) => {
     try {
@@ -605,6 +637,34 @@ router.put('/page/link/customize/displaytextcolor', async (req, res, next) => {
                 existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', displaytextcolor: '', };
             }
             existing.theme.displaytextcolor = displaytextcolor;
+            const update = await slugs.update({
+                _id: existing._id
+            }, {
+                $set: existing
+            });
+            res.json(existing);
+        } else {
+            throw new Error('No page found to upload profile picture');
+        }
+
+    } catch (error) {
+        next(error)
+    }
+});
+
+router.put('/page/link/customize/biotextcolor', async (req, res, next) => {
+    try {
+        const { uid } = req.currentUser;
+        const { biotextcolor } = req.body;
+        const users = await user.findOne({ uid });
+        const pagename = users.pagename;
+        const existing = await slugs.findOne({ name: pagename });
+
+        if (existing && biotextcolor) {
+            if (!existing.theme) {
+                existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', biotextcolor: '', };
+            }
+            existing.theme.biotextcolor = biotextcolor;
             const update = await slugs.update({
                 _id: existing._id
             }, {
