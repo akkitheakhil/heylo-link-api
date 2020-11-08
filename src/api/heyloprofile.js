@@ -592,6 +592,34 @@ router.put('/page/link/customize/btncolor', async (req, res, next) => {
     }
 });
 
+router.put('/page/link/customize/displaytextcolor', async (req, res, next) => {
+    try {
+        const { uid } = req.currentUser;
+        const { displaytextcolor } = req.body;
+        const users = await user.findOne({ uid });
+        const pagename = users.pagename;
+        const existing = await slugs.findOne({ name: pagename });
+
+        if (existing && displaytextcolor) {
+            if (!existing.theme) {
+                existing.theme = { profilepicture: '', coverpicture: '', covertheme: '', displaytextcolor: '', };
+            }
+            existing.theme.displaytextcolor = displaytextcolor;
+            const update = await slugs.update({
+                _id: existing._id
+            }, {
+                $set: existing
+            });
+            res.json(existing);
+        } else {
+            throw new Error('No page found to upload profile picture');
+        }
+
+    } catch (error) {
+        next(error)
+    }
+});
+
 router.put('/page/link/customize/btntext', async (req, res, next) => {
     try {
         const { uid } = req.currentUser;
